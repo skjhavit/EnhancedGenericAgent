@@ -1,0 +1,20 @@
+version: '3.8'
+
+# Simplified Docker Compose for Local Development
+# Use this if you already have PostgreSQL running locally
+
+services:
+  # ChromaDB (Vector Database) - Optional
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: agent_platform_chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
+volumes:
+  chroma_data:
