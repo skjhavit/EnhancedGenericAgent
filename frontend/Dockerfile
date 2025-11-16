@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json ./
 
 # Clean install - npm will install both ajv v6 and v8 where needed
+# Install all dependencies including devDependencies (needed for craco)
 RUN npm install && \
     npm cache clean --force
 
@@ -15,5 +16,5 @@ COPY . .
 # Expose port
 EXPOSE 3000
 
-# Start the development server
-CMD ["npm", "start"]
+# Start the development server using npx to run craco
+CMD ["npx", "craco", "start"]
