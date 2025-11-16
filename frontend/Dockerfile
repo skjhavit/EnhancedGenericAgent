@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json ./
 
-# Clean install with exact versions
-RUN npm install --legacy-peer-deps && \
+# Clean install - npm will install both ajv v6 and v8 where needed
+RUN npm install && \
     npm cache clean --force
 
 # Copy application code
