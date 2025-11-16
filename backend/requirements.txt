@@ -1,61 +1,46 @@
 # Web Framework
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-socketio==5.11.1
-python-multipart==0.0.6
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-socketio>=5.11.1
+python-multipart>=0.0.6
 
 # Database
-sqlalchemy==2.0.25
-alembic==1.13.1
-psycopg2-binary==2.9.9
-asyncpg==0.29.0
+sqlalchemy>=2.0.25
+alembic>=1.13.1
+psycopg2-binary>=2.9.9
+asyncpg>=0.29.0
 
 # Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-dotenv==1.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-dotenv>=1.0.0
 
-# LangChain & LLM
-langchain>=0.3.0
-langchain-openai>=0.2.0
+# LangChain & LLM - Compatible versions
+langchain-core>=0.3.0,<0.4.0
+langchain>=0.3.0,<0.4.0
+langchain-openai>=0.2.0,<0.3.0
 langchain-google-genai>=2.0.0
-langchain-community>=0.3.0
+langchain-community>=0.3.0,<0.4.0
 langgraph>=0.2.0
 langsmith>=0.1.0
 
 # Embeddings & Vector Stores
-chromadb==0.4.22
-sentence-transformers==2.3.1
-tiktoken==0.5.2
+chromadb>=0.4.22
+sentence-transformers>=2.3.1
+tiktoken>=0.5.2
 
 # RAG & Document Processing
-pypdf==4.0.1
-python-docx==1.1.0
-unstructured>=0.15.0
-beautifulsoup4==4.12.3
-markdown==3.5.2
+pypdf>=4.0.1
+python-docx>=1.1.0
+beautifulsoup4>=4.12.3
+markdown>=3.5.2
 lxml
-
-# Re-ranking
-flashrank==0.2.0
-
-# Okta SDK
-okta==2.9.5
 
 # Utilities
 pydantic>=2.7.4
 pydantic-settings>=2.1.0
-httpx==0.26.0
-redis==5.0.1
-celery==5.3.6
-
-# Monitoring & Logging
-prometheus-client==0.19.0
-structlog==24.1.0
+httpx>=0.26.0
 
 # Development
-pytest==7.4.4
-pytest-asyncio==0.23.3
-black==24.1.1
-ruff==0.1.14
-mypy==1.8.0
+pytest>=7.4.4
+pytest-asyncio>=0.23.3

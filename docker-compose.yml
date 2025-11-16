@@ -19,18 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis (for Celery and caching)
-  redis:
-    image: redis:7-alpine
-    container_name: agent_platform_redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # ChromaDB (Vector Database)
   chromadb:
     image: chromadb/chroma:latest
@@ -53,8 +41,6 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/agent_platform
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - CHROMA_PERSIST_DIR=/data/chroma
       - ENVIRONMENT=development
     env_file:
@@ -66,30 +52,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     command: uvicorn api.main:socket_app --host 0.0.0.0 --port 8000 --reload
-
-  # Celery Worker (for background tasks)
-  celery_worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: agent_platform_celery
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/agent_platform
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    env_file:
-      - .env
-    volumes:
-      - ./backend:/app
-      - ./uploads:/app/uploads
-      - ./data:/data
-    depends_on:
-      - postgres
-      - redis
-    command: celery -A tasks.celery worker --loglevel=info
 
   # Frontend (React)
   frontend:
