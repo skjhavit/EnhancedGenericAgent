@@ -173,7 +173,7 @@ async def get_session(
             id=str(msg.id),
             message_type=msg.message_type.value,
             content=msg.content,
-            metadata=msg.metadata,
+            metadata=msg.message_metadata,
             created_at=msg.created_at,
         )
         for msg in sorted(session.messages, key=lambda m: m.created_at)

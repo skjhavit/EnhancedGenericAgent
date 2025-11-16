@@ -62,7 +62,7 @@ class Document(Base):
     file_size = Column(String, nullable=True)  # File size in bytes
 
     # Processing metadata
-    metadata = Column(JSON, default=dict, nullable=False)  # {chunks_count, embedding_model, etc.}
+    file_metadata = Column(JSON, default=dict, nullable=False)  # {chunks_count, embedding_model, etc.}
     processing_status = Column(String, default="pending", nullable=False)  # pending, processing, completed, failed
 
     # Timestamps

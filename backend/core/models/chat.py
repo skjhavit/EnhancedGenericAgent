@@ -61,7 +61,7 @@ class ChatMessage(Base):
     content = Column(Text, nullable=False)
 
     # Additional metadata (tool calls, function results, etc.)
-    metadata = Column(JSON, default=dict, nullable=False)
+    message_metadata = Column(JSON, default=dict, nullable=False)
 
     # Timestamp
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
