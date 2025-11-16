@@ -1,7 +1,13 @@
 """LangGraph agent state definition."""
 
 from typing import TypedDict, Annotated, List, Dict, Any
-from langchain_core.messages import BaseMessage, add_messages
+from langchain_core.messages import BaseMessage
+from operator import add
+
+
+def add_messages(left: List[BaseMessage], right: List[BaseMessage]) -> List[BaseMessage]:
+    """Reducer function to merge message lists."""
+    return left + right
 
 
 class AgentState(TypedDict):
@@ -12,7 +18,7 @@ class AgentState(TypedDict):
     for the agent to reason, use tools, and interact with the user.
     """
 
-    # Chat messages (managed by LangChain's add_messages reducer)
+    # Chat messages (managed by custom add_messages reducer)
     messages: Annotated[List[BaseMessage], add_messages]
 
     # Session context
