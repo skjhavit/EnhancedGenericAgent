@@ -1,7 +1,6 @@
 """LangGraph workflow definition for the agent."""
 
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.postgres import PostgresSaver
 
 from agents.state import AgentState
 from agents.nodes import (
@@ -13,7 +12,6 @@ from agents.nodes import (
     route_from_reasoning,
     route_from_consent,
 )
-from core.database import DATABASE_URL
 
 
 def create_agent_graph(enable_checkpointing: bool = True) -> StateGraph:
@@ -78,18 +76,24 @@ def create_agent_graph(enable_checkpointing: bool = True) -> StateGraph:
 
     # Compile with checkpointing if enabled
     if enable_checkpointing:
-        # PostgreSQL checkpointer for state persistence
-        checkpointer = PostgresSaver.from_conn_string(DATABASE_URL)
-        return workflow.compile(
-            checkpointer=checkpointer,
-            interrupt_before=["check_consent"],  # Can interrupt here for consent
-        )
+        try:
+            # Try to use MemorySaver for checkpointing
+            from langgraph.checkpoint.memory import MemorySaver
+            checkpointer = MemorySaver()
+            return workflow.compile(
+                checkpointer=checkpointer,
+                interrupt_before=["check_consent"],  # Can interrupt here for consent
+            )
+        except ImportError:
+            # Fallback to no checkpointing if MemorySaver not available
+            print("Warning: MemorySaver not available, running without checkpointing")
+            return workflow.compile()
     else:
         return workflow.compile()
 
 
-# Global agent graph instance
-agent_graph = create_agent_graph(enable_checkpointing=True)
+# Global agent graph instance (checkpointing disabled for now)
+agent_graph = create_agent_graph(enable_checkpointing=False)
 
 
 async def run_agent(

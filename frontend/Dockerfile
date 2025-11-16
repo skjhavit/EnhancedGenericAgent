@@ -3,10 +3,11 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Clean install with exact versions
+RUN npm install --legacy-peer-deps && \
+    npm cache clean --force
 
 # Copy application code
 COPY . .
