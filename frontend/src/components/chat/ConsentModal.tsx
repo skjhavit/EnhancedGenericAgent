@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { ConsentRequest } from '@types/index';
+import { ConsentRequest } from '@types';
 import { websocketService } from '@services/websocket';
 
 interface ConsentModalProps {

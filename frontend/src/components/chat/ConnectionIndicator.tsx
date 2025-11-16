@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { ConnectionStatus } from '@types/index';
+import { ConnectionStatus } from '@types';
 
 interface ConnectionIndicatorProps {
   status: ConnectionStatus;

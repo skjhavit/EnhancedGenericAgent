@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { ChatMessage } from '@types/index';
+import { ChatMessage } from '@types';
 import { Message } from './Message';
 
 interface MessageListProps {

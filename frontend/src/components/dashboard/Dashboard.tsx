@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@stores/authStore';
 import { apiClient } from '@services/api';
-import { Agent, ChatSession } from '@types/index';
+import { Agent, ChatSession } from '@types';
 
 export const Dashboard: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);

@@ -25,6 +25,7 @@
       "@stores/*": ["stores/*"],
       "@hooks/*": ["hooks/*"],
       "@services/*": ["services/*"],
+      "@types": ["types"],
       "@types/*": ["types/*"],
       "@utils/*": ["utils/*"]
     }

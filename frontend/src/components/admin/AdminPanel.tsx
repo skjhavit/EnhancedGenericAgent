@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@services/api';
-import { Agent, KnowledgeBase } from '@types/index';
+import { Agent, KnowledgeBase } from '@types';
 
 export const AdminPanel: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);

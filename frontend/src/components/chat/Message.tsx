@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ChatMessage } from '@types/index';
+import { ChatMessage } from '@types';
 
 interface MessageProps {
   message: ChatMessage;

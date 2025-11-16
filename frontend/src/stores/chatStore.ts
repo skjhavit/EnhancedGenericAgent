@@ -8,7 +8,7 @@ import {
   ConsentRequest,
   ConnectionStatus,
   ChatSession,
-} from '@types/index';
+} from '@types';
 import { apiClient } from '@services/api';
 
 interface ChatState {

@@ -5,7 +5,7 @@
 import { io, Socket } from 'socket.io-client';
 import { useChatStore } from '@stores/chatStore';
 import { useAuthStore } from '@stores/authStore';
-import { ConsentRequest } from '@types/index';
+import { ConsentRequest } from '@types';
 
 const WS_URL = process.env.REACT_APP_WS_URL || 'http://localhost:8000';
 
