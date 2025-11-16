@@ -23,7 +23,8 @@ ENV VIRTUAL_ENV=/app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
 # Install dependencies with uv (much faster than pip!)
-RUN uv pip install -r requirements.txt
+RUN uv pip install -r requirements.txt && \
+    uv pip list
 
 # Copy application code
 COPY . .
@@ -35,4 +36,4 @@ RUN mkdir -p /app/uploads /data/chroma
 EXPOSE 8000
 
 # Run the application
-CMD ["uvicorn", "api.main:socket_app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/venv/bin/uvicorn", "api.main:socket_app", "--host", "0.0.0.0", "--port", "8000"]
