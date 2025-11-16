@@ -52,7 +52,7 @@ socket_app = socketio.ASGIApp(
 )
 
 # Import WebSocket handlers (this registers the events)
-from websocket.handler import register_handlers
+from ws_handlers.handler import register_handlers
 register_handlers(sio)
 
 # Include routers
