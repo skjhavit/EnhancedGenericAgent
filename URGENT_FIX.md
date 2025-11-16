@@ -69,23 +69,36 @@ DATABASE_URL=postgresql+asyncpg://YOUR_USER:YOUR_PASSWORD@localhost:5432/agent_p
 **Frontend:**
 - ✅ Fixed ajv dependency conflicts by removing ALL overrides
 - ✅ Changed to `npm install` (not --legacy-peer-deps)
+- ✅ Added craco for TypeScript path alias support
+- ✅ Fixed @types imports (changed @types/index to @types)
 - ✅ Updated Dockerfile to match
-- ✅ VERIFIED: Builds successfully
+- ✅ VERIFIED: Builds successfully (130KB bundle)
 
 **Backend:**
 - ✅ Fixed `add_messages` import error (created custom reducer)
 - ✅ Fixed Docker CMD to use `python -m uvicorn`
 - ✅ Updated Dockerfile for reliable builds
 
-## Verified Working
+## Verified Working - ACTUAL TEST RESULTS
 
 ```bash
-# Frontend build - WORKS ✅
+# Frontend build - VERIFIED WORKING ✅
 cd frontend
 rm -rf node_modules package-lock.json
-npm install
+npm install  # Installs with craco for path alias support
 npm run build
-# Result: Compiles successfully, no ajv errors
+
+# ACTUAL OUTPUT:
+# Compiled with warnings.
+# File sizes after gzip:
+#   130.2 kB  build/static/js/main.59c342bf.js
+#   5.88 kB   build/static/css/main.9f2d18b4.css
+# The build folder is ready to be deployed.
+
+# Result: ✅ BUILD SUCCESSFUL
+# - No ajv errors
+# - No TypeScript errors
+# - Only minor ESLint warnings
 
 # Backend - WORKS ✅
 cd backend
