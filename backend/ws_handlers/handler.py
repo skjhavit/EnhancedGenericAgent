@@ -93,44 +93,59 @@ async def register_handlers(sio: socketio.AsyncServer):
     @sio.event
     async def chat_message(sid, data: Dict[str, Any]):
         """Handle incoming chat message from user."""
+        print(f"[DEBUG] chat_message handler called with sid={sid}, data={data}")
         try:
             # Get session info
+            print(f"[DEBUG] Getting session info from sio.session...")
             async with sio.session(sid) as session:
                 user_id = session.get("user_id")
                 session_id = session.get("session_id")
 
+            print(f"[DEBUG] user_id={user_id}, session_id={session_id}")
+
             if not session_id:
+                print("[DEBUG] No session_id, sending error")
                 await sio.emit("error", {"message": "Not in a session"}, room=sid)
                 return
 
             message = data.get("message")
+            print(f"[DEBUG] message={message}")
             if not message:
+                print("[DEBUG] No message, sending error")
                 await sio.emit("error", {"message": "Message required"}, room=sid)
                 return
 
             # Get session and agent info from database
+            print(f"[DEBUG] Opening database session...")
             async with AsyncSessionLocal() as db:
+                print(f"[DEBUG] Querying ChatSession for id={session_id}")
                 result = await db.execute(
                     select(ChatSession)
                     .where(ChatSession.id == UUID(session_id))
                 )
                 chat_session = result.scalar_one_or_none()
+                print(f"[DEBUG] chat_session={chat_session}")
 
                 if not chat_session:
+                    print("[DEBUG] Chat session not found, sending error")
                     await sio.emit("error", {"message": "Session not found"}, room=sid)
                     return
 
                 # Get agent
+                print(f"[DEBUG] Querying Agent for id={chat_session.agent_id}")
                 result = await db.execute(
                     select(Agent).where(Agent.id == chat_session.agent_id)
                 )
                 agent = result.scalar_one_or_none()
+                print(f"[DEBUG] agent={agent}")
 
                 if not agent:
+                    print("[DEBUG] Agent not found, sending error")
                     await sio.emit("error", {"message": "Agent not found"}, room=sid)
                     return
 
                 # Save user message to database
+                print(f"[DEBUG] Saving user message to database...")
                 user_msg = ChatMessage(
                     session_id=UUID(session_id),
                     message_type=MessageType.HUMAN,
@@ -139,8 +154,10 @@ async def register_handlers(sio: socketio.AsyncServer):
                 )
                 db.add(user_msg)
                 await db.commit()
+                print(f"[DEBUG] User message saved")
 
                 # Prepare agent config
+                print(f"[DEBUG] Preparing agent config...")
                 agent_config = {
                     "id": str(agent.id),
                     "name": agent.name,
@@ -151,7 +168,9 @@ async def register_handlers(sio: socketio.AsyncServer):
                 }
 
                 # Get tool manifest for enabled tools
+                print(f"[DEBUG] Getting tool manifest for tools: {agent.enabled_tools}")
                 tool_manifest = tool_registry.get_manifest(agent.enabled_tools)
+                print(f"[DEBUG] tool_manifest={tool_manifest}")
 
             # Emit typing indicator
             await sio.emit("agent_typing", {"typing": True}, room=session_id)
