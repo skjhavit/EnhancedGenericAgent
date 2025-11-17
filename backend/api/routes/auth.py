@@ -91,13 +91,20 @@ async def register(
             detail="Email already registered",
         )
 
+    # Check if this is the first user (make them admin)
+    count_result = await db.execute(select(User))
+    user_count = len(count_result.scalars().all())
+
+    # First user becomes admin
+    user_role = UserRole.ADMIN if user_count == 0 else UserRole.USER
+
     # Create new user
     hashed_password = get_password_hash(request.password)
     new_user = User(
         email=request.email,
         hashed_password=hashed_password,
         full_name=request.full_name,
-        role=UserRole.USER,
+        role=user_role,
     )
 
     db.add(new_user)
