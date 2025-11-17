@@ -160,7 +160,7 @@ async def get_session(
         .options(joinedload(ChatSession.agent))
         .options(joinedload(ChatSession.messages))
     )
-    session = result.scalar_one_or_none()
+    session = result.unique().scalar_one_or_none()
 
     if not session:
         raise HTTPException(
@@ -205,7 +205,7 @@ async def update_session(
         .where(ChatSession.user_id == current_user.id)
         .options(joinedload(ChatSession.agent))
     )
-    session = result.scalar_one_or_none()
+    session = result.unique().scalar_one_or_none()
 
     if not session:
         raise HTTPException(

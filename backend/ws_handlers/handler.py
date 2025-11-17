@@ -158,45 +158,60 @@ async def register_handlers(sio: socketio.AsyncServer):
 
             # Stream agent response
             final_response = ""
-            async for event in run_agent(
-                user_message=message,
-                session_id=session_id,
-                user_id=user_id,
-                agent_config=agent_config,
-                tool_manifest=tool_manifest,
-            ):
-                # Process each event from the agent graph
-                for node_name, node_state in event.items():
-                    if node_name == "reason":
-                        # Reasoning node - stream tokens
-                        if "messages" in node_state:
-                            last_msg = node_state["messages"][-1]
-                            if hasattr(last_msg, "content"):
-                                # Stream the message content
+            try:
+                print(f"Starting agent execution for session {session_id}")
+                print(f"Agent config: {agent_config}")
+                print(f"Tool manifest: {tool_manifest}")
+
+                async for event in run_agent(
+                    user_message=message,
+                    session_id=session_id,
+                    user_id=user_id,
+                    agent_config=agent_config,
+                    tool_manifest=tool_manifest,
+                ):
+                    print(f"Agent event: {list(event.keys())}")
+
+                    # Process each event from the agent graph
+                    for node_name, node_state in event.items():
+                        if node_name == "reason":
+                            # Reasoning node - stream tokens
+                            if "messages" in node_state:
+                                last_msg = node_state["messages"][-1]
+                                if hasattr(last_msg, "content"):
+                                    # Stream the message content
+                                    await sio.emit(
+                                        "token",
+                                        {"data": last_msg.content},
+                                        room=session_id
+                                    )
+                                    final_response = last_msg.content
+
+                        elif node_name == "check_consent":
+                            # Consent required
+                            if node_state.get("needs_consent"):
+                                consent_data = node_state.get("consent_data", {})
                                 await sio.emit(
-                                    "token",
-                                    {"data": last_msg.content},
+                                    "consent_required",
+                                    {"data": consent_data},
                                     room=session_id
                                 )
-                                final_response = last_msg.content
 
-                    elif node_name == "check_consent":
-                        # Consent required
-                        if node_state.get("needs_consent"):
-                            consent_data = node_state.get("consent_data", {})
+                        elif node_name == "execute_tool":
+                            # Tool executed
                             await sio.emit(
-                                "consent_required",
-                                {"data": consent_data},
+                                "agent_thought",
+                                {"data": "Executing tool..."},
                                 room=session_id
                             )
 
-                    elif node_name == "execute_tool":
-                        # Tool executed
-                        await sio.emit(
-                            "agent_thought",
-                            {"data": "Executing tool..."},
-                            room=session_id
-                        )
+            except Exception as agent_error:
+                error_msg = f"Agent execution error: {str(agent_error)}"
+                print(error_msg)
+                import traceback
+                traceback.print_exc()
+                await sio.emit("error", {"message": error_msg}, room=session_id)
+                return
 
             # Save AI response to database
             if final_response:
