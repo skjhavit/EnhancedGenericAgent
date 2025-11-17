@@ -172,24 +172,35 @@ async def resume_agent_after_consent(
         }
     }
 
-    # Get the current state from checkpoint
-    state = await agent_graph.aget_state(config)
+    print(f"[DEBUG] Resuming agent after consent. session_id={session_id}, approved={approved}")
 
+    # Get the current state from checkpoint
+    current_state = await agent_graph.aget_state(config)
+    print(f"[DEBUG] Current state next: {current_state.next}")
+    print(f"[DEBUG] Current state values keys: {list(current_state.values.keys())}")
+
+    # Prepare the update based on user's decision
     if approved:
-        # User approved, proceed to tool execution
-        state.values["next_action"] = "execute_tool"
-        state.values["messages"].append(
-            HumanMessage(content="Approved")
-        )
+        # User approved, update state to proceed to tool execution
+        updates = {
+            "next_action": "execute_tool",
+            "needs_consent": False,
+        }
+        print(f"[DEBUG] User approved - updating state with: {updates}")
     else:
         # User rejected, go back to reasoning
-        state.values["next_action"] = "reason"
-        state.values["needs_consent"] = False
-        state.values["consent_data"] = {}
-        state.values["messages"].append(
-            HumanMessage(content="Rejected - please suggest an alternative")
-        )
+        updates = {
+            "next_action": "reason",
+            "needs_consent": False,
+            "consent_data": {},
+        }
+        print(f"[DEBUG] User rejected - updating state with: {updates}")
 
-    # Resume execution
+    # Update the checkpoint state with our changes
+    await agent_graph.aupdate_state(config, updates)
+    print(f"[DEBUG] State updated, now resuming execution...")
+
+    # Resume execution from the updated checkpoint
     async for event in agent_graph.astream(None, config):
+        print(f"[DEBUG] Resume event: {list(event.keys())}")
         yield event
