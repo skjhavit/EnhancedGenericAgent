@@ -83,28 +83,33 @@ class WebSocketService {
 
     // Message events
     this.socket.on('token', (data: { data: string }) => {
+      console.log('[WS] Received token:', data);
       useChatStore.getState().appendToken(data.data);
     });
 
     this.socket.on('agent_thought', (data: { data: string }) => {
+      console.log('[WS] Received agent_thought:', data);
       useChatStore.getState().setCurrentThought(data.data);
     });
 
     this.socket.on('agent_typing', (data: { typing: boolean }) => {
+      console.log('[WS] Received agent_typing:', data);
       useChatStore.getState().setIsStreaming(data.typing);
     });
 
     this.socket.on('consent_required', (data: { data: ConsentRequest }) => {
+      console.log('[WS] Received consent_required:', data);
       useChatStore.getState().setConsentRequest(data.data);
       useChatStore.getState().setIsStreaming(false);
     });
 
     this.socket.on('tool_result', (data: { data: any }) => {
-      console.log('Tool result:', data.data);
+      console.log('[WS] Received tool_result:', data.data);
       // Optionally display tool results
     });
 
     this.socket.on('end_of_stream', () => {
+      console.log('[WS] Received end_of_stream');
       useChatStore.getState().setIsStreaming(false);
       useChatStore.getState().setCurrentThought('');
     });

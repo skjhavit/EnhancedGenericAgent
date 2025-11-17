@@ -71,14 +71,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   appendToken: (token: string) =>
     set((state) => {
+      console.log('[STORE] appendToken called with:', token);
+      console.log('[STORE] Current chatHistory length:', state.chatHistory.length);
+
       const history = [...state.chatHistory];
       const lastMsg = history[history.length - 1];
 
       if (lastMsg && lastMsg.message_type === 'ai') {
         // Append to existing AI message
+        console.log('[STORE] Appending to existing AI message');
         lastMsg.content += token;
       } else {
         // Create new AI message
+        console.log('[STORE] Creating new AI message');
         history.push({
           id: `temp-${Date.now()}`,
           message_type: 'ai',
@@ -88,6 +93,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         });
       }
 
+      console.log('[STORE] New chatHistory length:', history.length);
       return { chatHistory: history };
     }),
 
