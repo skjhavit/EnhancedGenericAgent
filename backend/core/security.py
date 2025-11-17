@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import os
 
+from core.database import get_db
+
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -25,12 +27,22 @@ security = HTTPBearer()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    # Truncate plain_password to 72 bytes to avoid bcrypt error during verification
+    plain_password_bytes = plain_password.encode('utf-8')
+    if len(plain_password_bytes) > 72:
+        plain_password_bytes = plain_password_bytes[:72]
+    
+    return pwd_context.verify(plain_password_bytes.decode('utf-8'), hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """Hash a password."""
-    return pwd_context.hash(password)
+    # Truncate password to 72 bytes to avoid bcrypt error
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+    
+    return pwd_context.hash(password_bytes.decode('utf-8'))
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -69,7 +81,7 @@ def decode_token(token: str) -> dict:
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get the current authenticated user from JWT token."""
     from core.models.user import User  # Import here to avoid circular imports

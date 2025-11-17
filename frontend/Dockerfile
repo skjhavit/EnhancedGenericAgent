@@ -3,7 +3,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package*.json ./
 
 # Clean install - npm will install both ajv v6 and v8 where needed
 # Install all dependencies including devDependencies (needed for craco)

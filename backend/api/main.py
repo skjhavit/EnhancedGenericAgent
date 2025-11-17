@@ -1,5 +1,15 @@
 """Main FastAPI application."""
 
+from dotenv import load_dotenv
+import os
+
+# Load .env file from the root directory
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path=dotenv_path)
+else:
+    print(f"Warning: .env file not found at {dotenv_path}")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -11,34 +21,7 @@ from core.database import init_db, close_db
 from api.routes import auth, sessions, agents, knowledge, admin, health
 
 
-class CORSFixMiddleware(BaseHTTPMiddleware):
-    """Middleware to ensure CORS headers are always present on all responses."""
 
-    async def dispatch(self, request: Request, call_next):
-        # Get origin from request
-        origin = request.headers.get("origin", "*")
-
-        # Handle preflight OPTIONS requests
-        if request.method == "OPTIONS":
-            from starlette.responses import Response
-            response = Response()
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "*"
-            response.headers["Access-Control-Max-Age"] = "3600"
-            return response
-
-        # Process normal request
-        response = await call_next(request)
-
-        # Add CORS headers to all responses
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-
-        return response
 
 
 @asynccontextmanager
@@ -59,8 +42,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Add CORS fix middleware FIRST to ensure it wraps everything
-app.add_middleware(CORSFixMiddleware)
+
 
 # CORS middleware for FastAPI routes
 app.add_middleware(
