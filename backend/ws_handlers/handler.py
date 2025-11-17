@@ -78,7 +78,7 @@ def register_handlers(sio: socketio.AsyncServer):
                     return
 
             # Join room
-            sio.enter_room(sid, session_id)
+            await sio.enter_room(sid, session_id)  # ← Must await!
 
             # Store session ID
             async with sio.session(sid) as session:
@@ -115,6 +115,7 @@ def register_handlers(sio: socketio.AsyncServer):
                 await sio.emit("error", {"message": "Message required"}, room=sid)
                 return
 
+            print(f"[DEBUG] About to query database...")
             # Get session and agent info from database
             print(f"[DEBUG] Opening database session...")
             async with AsyncSessionLocal() as db:

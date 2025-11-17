@@ -46,12 +46,15 @@ export const ChatContainer: React.FC = () => {
 
     loadHistory();
 
-    // Connect WebSocket
-    console.log('[ChatContainer] Connecting WebSocket for session:', sessionId);
-    websocketService.connect(sessionId);
+    // Connect WebSocket with a small delay to avoid React StrictMode double-mount issues
+    const timer = setTimeout(() => {
+      console.log('[ChatContainer] Connecting WebSocket for session:', sessionId);
+      websocketService.connect(sessionId);
+    }, 100);
 
     // Cleanup ONLY on unmount or sessionId change
     return () => {
+      clearTimeout(timer);
       console.log('[ChatContainer] Disconnecting WebSocket');
       websocketService.disconnect();
     };
