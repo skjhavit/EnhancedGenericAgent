@@ -80,10 +80,9 @@ def create_agent_graph(enable_checkpointing: bool = True) -> StateGraph:
             # Try to use MemorySaver for checkpointing
             from langgraph.checkpoint.memory import MemorySaver
             checkpointer = MemorySaver()
-            return workflow.compile(
-                checkpointer=checkpointer,
-                interrupt_before=["check_consent"],  # Can interrupt here for consent
-            )
+            # Don't use interrupt_before - let the graph naturally interrupt
+            # when route_from_consent returns "wait_consent" -> END
+            return workflow.compile(checkpointer=checkpointer)
         except ImportError:
             # Fallback to no checkpointing if MemorySaver not available
             print("Warning: MemorySaver not available, running without checkpointing")
