@@ -83,17 +83,27 @@ async def reasoning_node(state: AgentState) -> AgentState:
     llm_config = agent_config.get("llm_config", {})
     llm: BaseChatModel = get_llm_provider(llm_config)
 
-    # Bind tools to LLM if available (some LLMs like Ollama don't support this)
+    # Bind tools to LLM if available
+    tools_bound = False
     if state["tool_manifest"]:
         try:
             # Convert tool manifest to LangChain tool format
-            tools = [tool_registry.get_tool(t["name"]) for t in state["tool_manifest"]]
-            llm = llm.bind_tools(tools)
-            print(f"✓ Tools bound to LLM: {[t.name for t in tools]}")
+            base_tools = [tool_registry.get_tool(t["name"]) for t in state["tool_manifest"]]
+            langchain_tools = [tool.to_langchain_tool() for tool in base_tools if tool]
+            llm = llm.bind_tools(langchain_tools)
+            tools_bound = True
+            print(f"✓ Tools bound to LLM: {[t.name for t in base_tools if t]}")
         except NotImplementedError:
-            print(f"⚠ LLM provider '{llm_config.get('provider')}' does not support tool binding. Tools will be described in system prompt instead.")
+            provider = llm_config.get('provider', 'unknown')
+            print(f"⚠ LLM provider '{provider}' does not support tool binding.")
+            if provider == 'ollama':
+                print(f"  → Upgrade to use tool calling: pip install langchain-ollama")
+                print(f"  → Supported models: llama3.1, llama3.2, mistral, phi-4")
+            print(f"  → Tools will be described in system prompt instead")
         except Exception as e:
             print(f"⚠ Failed to bind tools: {e}")
+            import traceback
+            traceback.print_exc()
 
     # Prepare messages
     messages = [SystemMessage(content=system_prompt)] + state["messages"]
