@@ -78,9 +78,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const lastMsg = history[history.length - 1];
 
       if (lastMsg && lastMsg.message_type === 'ai') {
-        // Append to existing AI message
+        // Append to existing AI message - create NEW object for reactivity
         console.log('[STORE] Appending to existing AI message');
-        lastMsg.content += token;
+        history[history.length - 1] = {
+          ...lastMsg,
+          content: lastMsg.content + token,
+        };
       } else {
         // Create new AI message
         console.log('[STORE] Creating new AI message');
