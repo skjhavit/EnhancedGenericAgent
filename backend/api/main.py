@@ -82,6 +82,57 @@ socket_app = socketio.ASGIApp(
     socketio_path="/socket.io",
 )
 
+
+# Wrap socket_app with ASGI middleware to ensure CORS on all responses
+class ASGICORSMiddleware:
+    """ASGI middleware to add CORS headers to all responses."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        # Get origin from headers
+        origin = "*"
+        for header_name, header_value in scope.get("headers", []):
+            if header_name == b"origin":
+                origin = header_value.decode("utf-8")
+                break
+
+        async def send_with_cors(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+
+                # Add CORS headers
+                headers.append((b"access-control-allow-origin", origin.encode()))
+                headers.append((b"access-control-allow-credentials", b"true"))
+                headers.append((b"access-control-allow-methods", b"GET, POST, PUT, DELETE, PATCH, OPTIONS"))
+                headers.append((b"access-control-allow-headers", b"*"))
+                headers.append((b"access-control-expose-headers", b"*"))
+
+                message["headers"] = headers
+
+            await send(message)
+
+        # Handle OPTIONS preflight
+        if scope["method"] == "OPTIONS":
+            await send_with_cors({
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [[b"content-length", b"0"]],
+            })
+            await send({"type": "http.response.body", "body": b""})
+            return
+
+        await self.app(scope, receive, send_with_cors)
+
+
+# Apply ASGI CORS middleware to socket_app
+socket_app = ASGICORSMiddleware(socket_app)
+
 # Import WebSocket handlers (this registers the events)
 from ws_handlers.handler import register_handlers
 register_handlers(sio)
