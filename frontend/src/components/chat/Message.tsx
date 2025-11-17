@@ -12,7 +12,6 @@ interface MessageProps {
 
 export const Message: React.FC<MessageProps> = ({ message }) => {
   const isHuman = message.message_type === 'human';
-  const isAI = message.message_type === 'ai';
   const isThought = message.message_type === 'thought';
   const isTool = message.message_type === 'tool';
 

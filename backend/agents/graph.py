@@ -92,8 +92,8 @@ def create_agent_graph(enable_checkpointing: bool = True) -> StateGraph:
         return workflow.compile()
 
 
-# Global agent graph instance (checkpointing disabled for now)
-agent_graph = create_agent_graph(enable_checkpointing=False)
+# Global agent graph instance (checkpointing enabled for consent flow)
+agent_graph = create_agent_graph(enable_checkpointing=True)
 
 
 async def run_agent(

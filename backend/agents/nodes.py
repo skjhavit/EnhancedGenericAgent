@@ -184,10 +184,10 @@ async def consent_check_node(state: AgentState) -> AgentState:
     tool_call = last_message.tool_calls[0]  # Handle first tool call
     tool_name = tool_call["name"]
 
-    # Check if tool requires consent
-    write_ops = state["agent_config"].get("write_operation_tools", [])
+    # Check if tool requires consent by looking at the tool's is_write_operation property
+    tool = tool_registry.get_tool(tool_name)
 
-    if tool_name in write_ops:
+    if tool and tool.is_write_operation:
         # Requires consent!
         tool_manifest_entry = next(
             (t for t in state["tool_manifest"] if t["name"] == tool_name),
