@@ -21,7 +21,6 @@ export const ChatContainer: React.FC = () => {
     connectionStatus,
     loadHistoryFromDB,
     setSessionId,
-    clearChat,
   } = useChatStore();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -57,6 +56,7 @@ export const ChatContainer: React.FC = () => {
     return () => {
       websocketService.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   // Auto-scroll to bottom on new messages

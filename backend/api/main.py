@@ -21,16 +21,42 @@ from core.database import init_db, close_db
 from api.routes import auth, sessions, agents, knowledge, admin, health
 
 
+def register_tools():
+    """Register all available tools in the tool registry."""
+    from tools.registry import tool_registry
+    from tools.calculator import CalculatorTool
+    from tools.current_time import CurrentTimeTool
+    from tools.notes import CreateNoteTool, ListNotesTool
 
+    # Register basic tools
+    tools_to_register = [
+        CalculatorTool(),
+        CurrentTimeTool(),
+        CreateNoteTool(),
+        ListNotesTool(),
+    ]
+
+    for tool in tools_to_register:
+        try:
+            tool_registry.register(tool)
+            print(f"✓ Registered tool: {tool.name}")
+        except ValueError as e:
+            print(f"⚠ Tool registration warning: {e}")
+
+    print(f"✓ Total tools registered: {len(tool_registry.list_tools())}")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
+    print("🚀 Starting Agent Platform...")
     await init_db()
+    register_tools()
+    print("✓ Application startup complete")
     yield
     # Shutdown
+    print("👋 Shutting down...")
     await close_db()
 
 

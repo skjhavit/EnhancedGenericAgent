@@ -7,7 +7,6 @@ import {
   ChatMessage,
   ConsentRequest,
   ConnectionStatus,
-  ChatSession,
 } from '@types';
 import { apiClient } from '@services/api';
 

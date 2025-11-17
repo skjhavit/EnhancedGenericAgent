@@ -6,11 +6,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@services/api';
 import { Agent, KnowledgeBase } from '@types';
+import { CreateAgentModal } from './CreateAgentModal';
 
 export const AdminPanel: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateAgentModal, setShowCreateAgentModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -61,7 +63,10 @@ export const AdminPanel: React.FC = () => {
         <section className="mb-12">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-800">Agents</h2>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <button
+              onClick={() => setShowCreateAgentModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
               Create Agent
             </button>
           </div>
@@ -153,6 +158,16 @@ export const AdminPanel: React.FC = () => {
           </div>
         </section>
       </main>
+
+      {/* Create Agent Modal */}
+      {showCreateAgentModal && (
+        <CreateAgentModal
+          onClose={() => setShowCreateAgentModal(false)}
+          onSuccess={() => {
+            loadData(); // Reload agents list
+          }}
+        />
+      )}
     </div>
   );
 };
