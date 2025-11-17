@@ -4,7 +4,14 @@ from typing import Dict, Any
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_community.chat_models import ChatOllama
+
+# Try to import new langchain-ollama package, fall back to community version
+try:
+    from langchain_ollama import ChatOllama
+    OLLAMA_SUPPORTS_TOOLS = True
+except ImportError:
+    from langchain_community.chat_models import ChatOllama
+    OLLAMA_SUPPORTS_TOOLS = False
 
 
 class LLMFactory:
