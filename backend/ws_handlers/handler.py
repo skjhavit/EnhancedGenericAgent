@@ -268,15 +268,20 @@ def register_handlers(sio: socketio.AsyncServer):
     @sio.event
     async def consent_response(sid, data: Dict[str, Any]):
         """Handle user's consent response (approve/reject)."""
+        print(f"[DEBUG] consent_response called with sid={sid}, data={data}")
         try:
             async with sio.session(sid) as session:
                 session_id = session.get("session_id")
 
+            print(f"[DEBUG] Consent for session_id={session_id}")
+
             if not session_id:
+                print("[DEBUG] No session_id found")
                 await sio.emit("error", {"message": "Not in a session"}, room=sid)
                 return
 
             approved = data.get("approved", False)
+            print(f"[DEBUG] Consent approved={approved}")
 
             # Resume agent execution
             await sio.emit("agent_typing", {"typing": True}, room=session_id)
