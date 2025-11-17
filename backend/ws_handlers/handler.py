@@ -14,7 +14,7 @@ from agents.graph import run_agent, resume_agent_after_consent
 from tools.registry import tool_registry
 
 
-async def register_handlers(sio: socketio.AsyncServer):
+def register_handlers(sio: socketio.AsyncServer):
     """Register Socket.IO event handlers."""
 
     @sio.event
