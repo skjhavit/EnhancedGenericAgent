@@ -35,29 +35,27 @@ export const ChatContainer: React.FC = () => {
     // Set session ID in store
     setSessionId(sessionId);
 
-    // Load history if chat is empty
+    // Load history from database
     const loadHistory = async () => {
-      if (chatHistory.length === 0) {
-        try {
-          await loadHistoryFromDB(sessionId);
-        } catch (error) {
-          console.error('Failed to load chat history:', error);
-          // Handle error (show notification, redirect, etc.)
-        }
+      try {
+        await loadHistoryFromDB(sessionId);
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
       }
-
-      // Connect WebSocket after history is loaded
-      websocketService.connect(sessionId);
     };
 
     loadHistory();
 
-    // Cleanup on unmount
+    // Connect WebSocket
+    console.log('[ChatContainer] Connecting WebSocket for session:', sessionId);
+    websocketService.connect(sessionId);
+
+    // Cleanup ONLY on unmount or sessionId change
     return () => {
+      console.log('[ChatContainer] Disconnecting WebSocket');
       websocketService.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
+  }, [sessionId, navigate, setSessionId, loadHistoryFromDB]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {

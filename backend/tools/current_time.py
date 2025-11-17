@@ -1,6 +1,7 @@
 """Tool to get the current date and time."""
 
-from datetime import datetime, timezone
+from datetime import datetime
+import datetime as dt
 from tools.base import BaseTool, ToolResult
 
 
@@ -30,13 +31,14 @@ class CurrentTimeTool(BaseTool):
         Get the current time.
 
         Args:
-            timezone: Optional timezone name
+            timezone: Optional timezone name (parameter)
 
         Returns:
             ToolResult with current time information
         """
         try:
-            utc_now = datetime.now(timezone.utc)
+            # Use dt.timezone to avoid conflict with timezone parameter
+            utc_now = datetime.now(dt.timezone.utc)
             local_now = datetime.now()
 
             time_info = {
