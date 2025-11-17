@@ -83,11 +83,17 @@ async def reasoning_node(state: AgentState) -> AgentState:
     llm_config = agent_config.get("llm_config", {})
     llm: BaseChatModel = get_llm_provider(llm_config)
 
-    # Bind tools to LLM if available
+    # Bind tools to LLM if available (some LLMs like Ollama don't support this)
     if state["tool_manifest"]:
-        # Convert tool manifest to LangChain tool format
-        tools = [tool_registry.get_tool(t["name"]) for t in state["tool_manifest"]]
-        llm = llm.bind_tools(tools)
+        try:
+            # Convert tool manifest to LangChain tool format
+            tools = [tool_registry.get_tool(t["name"]) for t in state["tool_manifest"]]
+            llm = llm.bind_tools(tools)
+            print(f"✓ Tools bound to LLM: {[t.name for t in tools]}")
+        except NotImplementedError:
+            print(f"⚠ LLM provider '{llm_config.get('provider')}' does not support tool binding. Tools will be described in system prompt instead.")
+        except Exception as e:
+            print(f"⚠ Failed to bind tools: {e}")
 
     # Prepare messages
     messages = [SystemMessage(content=system_prompt)] + state["messages"]
