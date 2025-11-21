@@ -28,6 +28,29 @@ const preprocessMarkdown = (content: string): string => {
   // Example: "| A | B | |---| | C |" becomes "| A | B |\n|---|\n| C |"
   processed = processed.replace(/(\|[^\n]+\|)\s+(?=\|)/g, '$1\n');
 
+  // Clean up malformed tables (header + separator but content is bullets, not table rows)
+  // Example: "| Category | Name |\n|----------|------|\n• Item 1" -> "**Category | Name**\n---\n• Item 1"
+  // This detects table headers followed by separator rows, but then regular text (not more table rows)
+  const malformedTablePattern = /\|([^\n]+)\|\n\|[-\s|]+\|\n(?!\|)/g;
+  if (malformedTablePattern.test(processed)) {
+    // Convert pseudo-table header to bold text
+    processed = processed.replace(/^\|([^\n]+)\|$/gm, (match, content) => {
+      // Only replace if it's part of a malformed table (followed by separator then non-table content)
+      const lines = processed.split('\n');
+      const matchIndex = lines.findIndex(line => line === match);
+      if (matchIndex >= 0 && matchIndex < lines.length - 2) {
+        const nextLine = lines[matchIndex + 1];
+        const lineAfterNext = lines[matchIndex + 2];
+        if (nextLine.match(/^\|[-\s|]+\|$/) && !lineAfterNext.match(/^\|/)) {
+          return `**${content.trim()}**`;
+        }
+      }
+      return match;
+    });
+    // Remove separator rows that are part of malformed tables
+    processed = processed.replace(/^\|[-\s|]+\|$/gm, '---');
+  }
+
   // Fix broken markdown tables (add newlines between table rows if missing)
   processed = processed.replace(/\|\s*\n(?!\|)/g, '|\n');
 
