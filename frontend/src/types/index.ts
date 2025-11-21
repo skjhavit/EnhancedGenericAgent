@@ -77,6 +77,13 @@ export interface ConsentRequest {
   action_impact: string;
 }
 
+export interface ToolManifest {
+  name: string;
+  description: string;
+  parameters: Record<string, any>;
+  requires_consent: boolean;
+}
+
 export interface AuthTokens {
   access_token: string;
   refresh_token: string;

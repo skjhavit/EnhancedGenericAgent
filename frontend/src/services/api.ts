@@ -11,6 +11,7 @@ import {
   SessionDetail,
   KnowledgeBase,
   Document,
+  ToolManifest,
 } from '@types';
 import { useAuthStore } from '@stores/authStore';
 
@@ -183,6 +184,12 @@ class ApiClient {
 
   async deleteAgent(agentId: string): Promise<void> {
     await this.client.delete(`/api/agents/${agentId}`);
+  }
+
+  // Tools
+  async getTools(): Promise<ToolManifest[]> {
+    const response = await this.client.get<ToolManifest[]>('/api/admin/tools');
+    return response.data;
   }
 
   // Knowledge Bases

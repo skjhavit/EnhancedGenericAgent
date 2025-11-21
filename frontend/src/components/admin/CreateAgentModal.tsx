@@ -2,8 +2,9 @@
  * Modal for creating a new agent
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiClient } from '@services/api';
+import { ToolManifest } from '@types';
 
 interface CreateAgentModalProps {
   onClose: () => void;
@@ -23,8 +24,25 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [availableTools, setAvailableTools] = useState<ToolManifest[]>([]);
+  const [toolsLoading, setToolsLoading] = useState(true);
 
-  const availableTools = ['calculator', 'get_current_time', 'create_note', 'list_notes'];
+  // Fetch available tools on mount
+  useEffect(() => {
+    const loadTools = async () => {
+      try {
+        const tools = await apiClient.getTools();
+        setAvailableTools(tools);
+      } catch (err: any) {
+        console.error('Failed to load tools:', err);
+        setError('Failed to load available tools');
+      } finally {
+        setToolsLoading(false);
+      }
+    };
+
+    loadTools();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +50,12 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
     setLoading(true);
 
     try {
+      // Determine which enabled tools require consent
+      const writeOperationTools = formData.enabled_tools.filter(toolName => {
+        const tool = availableTools.find(t => t.name === toolName);
+        return tool?.requires_consent === true;
+      });
+
       await apiClient.createAgent({
         name: formData.name,
         description: formData.description,
@@ -47,7 +71,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
           model: 'text-embedding-3-small',
         },
         enabled_tools: formData.enabled_tools,
-        write_operation_tools: ['create_note'], // Tools that require consent
+        write_operation_tools: writeOperationTools,
       });
 
       onSuccess();
@@ -189,19 +213,38 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Enabled Tools
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {availableTools.map(tool => (
-                  <label key={tool} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.enabled_tools.includes(tool)}
-                      onChange={() => toggleTool(tool)}
-                      className="rounded"
-                    />
-                    <span className="text-sm">{tool}</span>
-                  </label>
-                ))}
-              </div>
+              {toolsLoading ? (
+                <div className="text-sm text-gray-500">Loading tools...</div>
+              ) : availableTools.length === 0 ? (
+                <div className="text-sm text-gray-500">No tools available</div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto border rounded p-2">
+                  {availableTools.map(tool => (
+                    <label
+                      key={tool.name}
+                      className="flex items-start space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.enabled_tools.includes(tool.name)}
+                        onChange={() => toggleTool(tool.name)}
+                        className="rounded mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{tool.name}</span>
+                          {tool.requires_consent && (
+                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+                              Requires Consent
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">{tool.description}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Actions */}
