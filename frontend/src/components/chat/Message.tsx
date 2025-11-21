@@ -21,6 +21,13 @@ const preprocessMarkdown = (content: string): string => {
   // Replace HTML <br> tags with markdown line breaks
   processed = processed.replace(/<br\s*\/?>/gi, '  \n');
 
+  // Fix inline table rows (most aggressive fix for LLM output)
+  // This handles cases where entire tables are on one line like:
+  // | Category | Tool | |----------|------| | Row | Cell |
+  // Strategy: Match complete rows (greedy to get all cells), split when followed by another row
+  // Example: "| A | B | |---| | C |" becomes "| A | B |\n|---|\n| C |"
+  processed = processed.replace(/(\|[^\n]+\|)\s+(?=\|)/g, '$1\n');
+
   // Fix broken markdown tables (add newlines between table rows if missing)
   processed = processed.replace(/\|\s*\n(?!\|)/g, '|\n');
 
