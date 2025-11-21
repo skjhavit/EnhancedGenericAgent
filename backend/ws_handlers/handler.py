@@ -10,6 +10,7 @@ import json
 from core.database import AsyncSessionLocal
 from core.models import User, Agent, ChatSession, ChatMessage, MessageType
 from core.security import decode_token
+from core.llm_config import LLMProviderConfig
 from agents.graph import run_agent, resume_agent_after_consent
 from tools.registry import tool_registry
 
@@ -159,12 +160,28 @@ def register_handlers(sio: socketio.AsyncServer):
 
                 # Prepare agent config
                 print(f"[DEBUG] Preparing agent config...")
+
+                # Check for runtime overrides from client
+                llm_override = data.get("llm_override")  # e.g., "openai", "gemini", "ollama"
+                embedding_override = data.get("embedding_override")  # e.g., "openai", "gemini", "ollama"
+
+                # Use overrides if provided, otherwise use agent's default config
+                llm_config = agent.llm_config
+                if llm_override:
+                    print(f"[DEBUG] Using LLM override: {llm_override}")
+                    llm_config = LLMProviderConfig.get_llm_config(llm_override)
+
+                embedding_config = agent.embedding_config
+                if embedding_override:
+                    print(f"[DEBUG] Using embedding override: {embedding_override}")
+                    embedding_config = LLMProviderConfig.get_embedding_config(embedding_override)
+
                 agent_config = {
                     "id": str(agent.id),
                     "name": agent.name,
                     "role": agent.description or "helpful assistant",
-                    "llm_config": agent.llm_config,
-                    "embedding_config": agent.embedding_config,
+                    "llm_config": llm_config,
+                    "embedding_config": embedding_config,
                     "knowledge_bases": [],  # TODO: Load linked knowledge bases
                 }
 

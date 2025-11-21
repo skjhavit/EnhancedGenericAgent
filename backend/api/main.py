@@ -18,7 +18,7 @@ from starlette.requests import Request
 import socketio
 
 from core.database import init_db, close_db
-from api.routes import auth, sessions, agents, knowledge, admin, health
+from api.routes import auth, sessions, agents, knowledge, admin, health, config
 
 
 def register_tools():
@@ -154,6 +154,7 @@ app.include_router(sessions.router, prefix="/api/sessions", tags=["Sessions"])
 app.include_router(agents.router, prefix="/api/agents", tags=["Agents"])
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["Knowledge"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(config.router, prefix="/api/config", tags=["Configuration"])
 app.include_router(health.router, prefix="/api", tags=["Health"])
 
 
