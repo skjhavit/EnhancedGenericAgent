@@ -3,13 +3,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 from typing import List
 from uuid import UUID
 from datetime import datetime
 
 from core.database import get_db
-from core.models import User, Agent
+from core.models import User, Agent, KnowledgeBase
 from core.security import get_current_user
 
 router = APIRouter()
@@ -25,6 +26,7 @@ class AgentResponse(BaseModel):
     embedding_config: dict
     enabled_tools: list
     write_operation_tools: list
+    knowledge_base_ids: list
     created_at: datetime
 
     class Config:
@@ -39,6 +41,7 @@ class CreateAgentRequest(BaseModel):
     embedding_config: dict
     enabled_tools: list = []
     write_operation_tools: list = []
+    knowledge_base_ids: list = []
 
 
 class UpdateAgentRequest(BaseModel):
@@ -49,6 +52,7 @@ class UpdateAgentRequest(BaseModel):
     embedding_config: dict | None = None
     enabled_tools: list | None = None
     write_operation_tools: list | None = None
+    knowledge_base_ids: list | None = None
 
 
 @router.get("", response_model=List[AgentResponse])
@@ -60,6 +64,7 @@ async def list_agents(
     """List all available agents."""
     result = await db.execute(
         select(Agent)
+        .options(selectinload(Agent.knowledge_bases))
         .limit(limit)
         .offset(offset)
     )
@@ -75,6 +80,7 @@ async def list_agents(
             embedding_config=agent.embedding_config,
             enabled_tools=agent.enabled_tools,
             write_operation_tools=agent.write_operation_tools,
+            knowledge_base_ids=[str(kb.id) for kb in agent.knowledge_bases],
             created_at=agent.created_at,
         )
         for agent in agents
@@ -87,7 +93,11 @@ async def get_agent(
     db: AsyncSession = Depends(get_db)
 ):
     """Get a specific agent."""
-    result = await db.execute(select(Agent).where(Agent.id == UUID(agent_id)))
+    result = await db.execute(
+        select(Agent)
+        .options(selectinload(Agent.knowledge_bases))
+        .where(Agent.id == UUID(agent_id))
+    )
     agent = result.scalar_one_or_none()
 
     if not agent:
@@ -105,6 +115,7 @@ async def get_agent(
         embedding_config=agent.embedding_config,
         enabled_tools=agent.enabled_tools,
         write_operation_tools=agent.write_operation_tools,
+        knowledge_base_ids=[str(kb.id) for kb in agent.knowledge_bases],
         created_at=agent.created_at,
     )
 
@@ -127,9 +138,17 @@ async def create_agent(
         created_by=current_user.id,
     )
 
+    # Attach knowledge bases if provided
+    if request.knowledge_base_ids:
+        kb_result = await db.execute(
+            select(KnowledgeBase).where(KnowledgeBase.id.in_([UUID(kb_id) for kb_id in request.knowledge_base_ids]))
+        )
+        knowledge_bases = kb_result.scalars().all()
+        agent.knowledge_bases = list(knowledge_bases)
+
     db.add(agent)
     await db.commit()
-    await db.refresh(agent)
+    await db.refresh(agent, ["knowledge_bases"])
 
     return AgentResponse(
         id=str(agent.id),
@@ -140,6 +159,7 @@ async def create_agent(
         embedding_config=agent.embedding_config,
         enabled_tools=agent.enabled_tools,
         write_operation_tools=agent.write_operation_tools,
+        knowledge_base_ids=[str(kb.id) for kb in agent.knowledge_bases],
         created_at=agent.created_at,
     )
 
@@ -152,7 +172,11 @@ async def update_agent(
     db: AsyncSession = Depends(get_db)
 ):
     """Update an agent."""
-    result = await db.execute(select(Agent).where(Agent.id == UUID(agent_id)))
+    result = await db.execute(
+        select(Agent)
+        .options(selectinload(Agent.knowledge_bases))
+        .where(Agent.id == UUID(agent_id))
+    )
     agent = result.scalar_one_or_none()
 
     if not agent:
@@ -177,8 +201,16 @@ async def update_agent(
     if request.write_operation_tools is not None:
         agent.write_operation_tools = request.write_operation_tools
 
+    # Update knowledge bases if provided
+    if request.knowledge_base_ids is not None:
+        kb_result = await db.execute(
+            select(KnowledgeBase).where(KnowledgeBase.id.in_([UUID(kb_id) for kb_id in request.knowledge_base_ids]))
+        )
+        knowledge_bases = kb_result.scalars().all()
+        agent.knowledge_bases = list(knowledge_bases)
+
     await db.commit()
-    await db.refresh(agent)
+    await db.refresh(agent, ["knowledge_bases"])
 
     return AgentResponse(
         id=str(agent.id),
@@ -189,6 +221,7 @@ async def update_agent(
         embedding_config=agent.embedding_config,
         enabled_tools=agent.enabled_tools,
         write_operation_tools=agent.write_operation_tools,
+        knowledge_base_ids=[str(kb.id) for kb in agent.knowledge_bases],
         created_at=agent.created_at,
     )
 

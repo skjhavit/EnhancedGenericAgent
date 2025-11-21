@@ -179,3 +179,23 @@ async def upload_document(
         uploaded_at=document.uploaded_at,
         processed_at=document.processed_at,
     )
+
+
+@router.delete("/{kb_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_knowledge_base(
+    kb_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a knowledge base and all its documents."""
+    result = await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == UUID(kb_id)))
+    kb = result.scalar_one_or_none()
+
+    if not kb:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Knowledge base not found",
+        )
+
+    await db.delete(kb)
+    await db.commit()
