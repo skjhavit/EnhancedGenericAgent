@@ -13,7 +13,7 @@ asyncpg>=0.29.0
 # Authentication & Security
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
-bcrypt==3.2.2  # Pin to 3.2.2 for passlib compatibility (4.0+ breaks passlib)
+bcrypt>=4.0.1  # Required for chromadb compatibility (passlib 1.7.4+ supports bcrypt 4.x)
 python-dotenv>=1.0.0
 
 # LangChain & LLM - Compatible versions
