@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@services/api';
-import { ToolManifest } from '@types';
+import { ToolManifest, KnowledgeBase } from '@types';
 
 interface CreateAgentModalProps {
   onClose: () => void;
@@ -21,27 +21,33 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
     api_key: '',
     temperature: 0.7,
     enabled_tools: [] as string[],
+    knowledge_base_ids: [] as string[],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [availableTools, setAvailableTools] = useState<ToolManifest[]>([]);
+  const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [toolsLoading, setToolsLoading] = useState(true);
 
-  // Fetch available tools on mount
+  // Fetch available tools and knowledge bases on mount
   useEffect(() => {
-    const loadTools = async () => {
+    const loadData = async () => {
       try {
-        const tools = await apiClient.getTools();
+        const [tools, kbs] = await Promise.all([
+          apiClient.getTools(),
+          apiClient.getKnowledgeBases(),
+        ]);
         setAvailableTools(tools);
+        setKnowledgeBases(kbs);
       } catch (err: any) {
-        console.error('Failed to load tools:', err);
-        setError('Failed to load available tools');
+        console.error('Failed to load data:', err);
+        setError('Failed to load tools or knowledge bases');
       } finally {
         setToolsLoading(false);
       }
     };
 
-    loadTools();
+    loadData();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,6 +78,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
         },
         enabled_tools: formData.enabled_tools,
         write_operation_tools: writeOperationTools,
+        knowledge_base_ids: formData.knowledge_base_ids,
       });
 
       onSuccess();
@@ -89,6 +96,15 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
       enabled_tools: prev.enabled_tools.includes(tool)
         ? prev.enabled_tools.filter(t => t !== tool)
         : [...prev.enabled_tools, tool]
+    }));
+  };
+
+  const toggleKnowledgeBase = (kbId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      knowledge_base_ids: prev.knowledge_base_ids.includes(kbId)
+        ? prev.knowledge_base_ids.filter(id => id !== kbId)
+        : [...prev.knowledge_base_ids, kbId]
     }));
   };
 
@@ -240,6 +256,40 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({ onClose, onS
                           )}
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5">{tool.description}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Knowledge Bases */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Attached Knowledge Bases
+              </label>
+              {knowledgeBases.length === 0 ? (
+                <div className="text-sm text-gray-500">
+                  No knowledge bases available. Create one first.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded p-2">
+                  {knowledgeBases.map((kb) => (
+                    <label
+                      key={kb.id}
+                      className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.knowledge_base_ids.includes(kb.id)}
+                        onChange={() => toggleKnowledgeBase(kb.id)}
+                        className="rounded"
+                      />
+                      <div>
+                        <span className="text-sm font-medium">{kb.name}</span>
+                        <p className="text-xs text-gray-500">
+                          {kb.document_count} documents
+                        </p>
                       </div>
                     </label>
                   ))}

@@ -18,6 +18,7 @@ export interface Agent {
   embedding_config: Record<string, any>;
   enabled_tools: string[];
   write_operation_tools: string[];
+  knowledge_base_ids?: string[];
   created_at: string;
 }
 

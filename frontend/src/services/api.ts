@@ -231,6 +231,10 @@ class ApiClient {
     );
     return response.data;
   }
+
+  async deleteKnowledgeBase(kbId: string): Promise<void> {
+    await this.client.delete(`/api/knowledge/${kbId}`);
+  }
 }
 
 export const apiClient = new ApiClient();
