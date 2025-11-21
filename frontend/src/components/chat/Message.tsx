@@ -109,12 +109,14 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                   <td className="border border-gray-300 px-3 py-2" {...props} />
                 ),
                 // Customize code blocks
-                code: ({ node, inline, ...props }) =>
-                  inline ? (
+                code: ({ node, ...props }: any) => {
+                  const isInline = !props.className?.includes('language-');
+                  return isInline ? (
                     <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono" {...props} />
                   ) : (
                     <code className="block bg-gray-900 text-gray-100 p-3 rounded text-sm font-mono overflow-x-auto" {...props} />
-                  ),
+                  );
+                },
                 // Better list styling
                 ul: ({ node, ...props }) => (
                   <ul className="list-disc list-inside space-y-1 my-2" {...props} />
