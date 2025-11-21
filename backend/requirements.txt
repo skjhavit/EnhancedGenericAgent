@@ -44,6 +44,10 @@ pydantic-settings>=2.1.0
 email-validator>=2.1.0  # Required for Pydantic email validation
 httpx>=0.26.0
 
+# Azure Integration
+azure-identity>=1.15.0
+msgraph-sdk>=1.0.0
+
 # Development
 pytest>=7.4.4
 pytest-asyncio>=0.23.3

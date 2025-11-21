@@ -36,6 +36,35 @@ def register_tools():
         ListNotesTool(),
     ]
 
+    # Register Azure tools (Phase 1: Foundation)
+    try:
+        from tools.azure import (
+            CreateUserTool,
+            GetUserTool,
+            ResetPasswordTool,
+            CreateGroupTool,
+            GetGroupTool,
+            AddGroupMemberTool,
+        )
+
+        azure_tools = [
+            # User Management
+            CreateUserTool(),
+            GetUserTool(),
+            ResetPasswordTool(),
+            # Group Management
+            CreateGroupTool(),
+            GetGroupTool(),
+            AddGroupMemberTool(),
+        ]
+
+        tools_to_register.extend(azure_tools)
+        print(f"✓ Azure tools loaded: {len(azure_tools)} tools")
+
+    except ImportError as e:
+        print(f"⚠ Azure tools not available (missing dependencies): {e}")
+        print("  To enable Azure tools, install: pip install azure-identity msgraph-sdk")
+
     for tool in tools_to_register:
         try:
             tool_registry.register(tool)
