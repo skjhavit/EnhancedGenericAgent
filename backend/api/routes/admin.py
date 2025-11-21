@@ -37,6 +37,16 @@ async def get_system_stats(
 async def list_available_tools(
     current_admin: User = Depends(get_current_admin_user)
 ) -> List[Dict[str, Any]]:
-    """List all available tools in the registry."""
-    # TODO: Implement tool registry listing
-    return []
+    """
+    List all available tools in the registry.
+
+    Returns tool manifests that can be used by the UI to populate
+    the available tools list when creating/editing agents.
+    """
+    from tools.registry import tool_registry
+
+    # Get all tools from the registry
+    manifests = tool_registry.get_manifest()
+
+    # Return manifests sorted by name for consistent UI ordering
+    return sorted(manifests, key=lambda x: x['name'])
