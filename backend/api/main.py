@@ -36,7 +36,7 @@ def register_tools():
         ListNotesTool(),
     ]
 
-    # Register Azure tools (Phase 1: Foundation)
+    # Register Azure tools (Phase 1 + 2)
     try:
         from tools.azure import (
             CreateUserTool,
@@ -45,6 +45,10 @@ def register_tools():
             CreateGroupTool,
             GetGroupTool,
             AddGroupMemberTool,
+            CreateAppRegistrationTool,
+            GetAppRegistrationTool,
+            AddRedirectUriTool,
+            CreateClientSecretTool,
         )
 
         azure_tools = [
@@ -56,6 +60,11 @@ def register_tools():
             CreateGroupTool(),
             GetGroupTool(),
             AddGroupMemberTool(),
+            # App Registration Management (Phase 2)
+            CreateAppRegistrationTool(),
+            GetAppRegistrationTool(),
+            AddRedirectUriTool(),
+            CreateClientSecretTool(),
         ]
 
         tools_to_register.extend(azure_tools)
