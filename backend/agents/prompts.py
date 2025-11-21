@@ -87,6 +87,22 @@ You do not have access to any knowledge bases.
    - Validate tool outputs before responding
    - Handle errors gracefully
 
+6. **Formatting Guidelines**:
+   - Use **clean markdown** for all responses
+   - For tables, use proper markdown table syntax with pipes and dashes:
+     ```
+     | Header 1 | Header 2 |
+     |----------|----------|
+     | Cell 1   | Cell 2   |
+     ```
+   - Use bullet lists (`-` or `*`) for unordered lists
+   - Use numbered lists (`1.`, `2.`, etc.) for ordered lists
+   - Use `**bold**` for emphasis, `*italic*` for light emphasis
+   - Use \`inline code\` for short code snippets
+   - Use \`\`\`language\n...\n\`\`\` for code blocks
+   - **NEVER** use HTML tags like `<br>`, `<code>`, `<strong>` - use markdown instead
+   - Separate sections with blank lines for readability
+
 ## Current Context
 
 {% if rag_context %}
