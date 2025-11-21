@@ -12,6 +12,7 @@ import {
   KnowledgeBase,
   Document,
   ToolManifest,
+  ProvidersResponse,
 } from '@types';
 import { useAuthStore } from '@stores/authStore';
 
@@ -234,6 +235,12 @@ class ApiClient {
 
   async deleteKnowledgeBase(kbId: string): Promise<void> {
     await this.client.delete(`/api/knowledge/${kbId}`);
+  }
+
+  // Configuration
+  async getAvailableProviders(): Promise<ProvidersResponse> {
+    const response = await this.client.get<ProvidersResponse>('/api/config/providers');
+    return response.data;
   }
 }
 

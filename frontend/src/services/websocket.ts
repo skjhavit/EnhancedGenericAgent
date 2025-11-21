@@ -5,7 +5,7 @@
 import { io, Socket } from 'socket.io-client';
 import { useChatStore } from '@stores/chatStore';
 import { useAuthStore } from '@stores/authStore';
-import { ConsentRequest } from '@types';
+import { ConsentRequest, ChatOverrides } from '@types';
 
 const WS_URL = process.env.REACT_APP_WS_URL || 'http://localhost:8000';
 
@@ -121,13 +121,23 @@ class WebSocketService {
     });
   }
 
-  sendMessage(message: string): void {
+  sendMessage(message: string, overrides?: ChatOverrides): void {
     if (!this.socket?.connected) {
       console.error('WebSocket not connected');
       return;
     }
 
-    this.socket.emit('chat_message', { message });
+    const payload: any = { message };
+
+    // Add overrides if provided
+    if (overrides?.llm_override) {
+      payload.llm_override = overrides.llm_override;
+    }
+    if (overrides?.embedding_override) {
+      payload.embedding_override = overrides.embedding_override;
+    }
+
+    this.socket.emit('chat_message', payload);
   }
 
   sendConsentResponse(approved: boolean): void {

@@ -85,6 +85,16 @@ export interface ToolManifest {
   requires_consent: boolean;
 }
 
+export interface ProvidersResponse {
+  llm_providers: string[];
+  embedding_providers: string[];
+}
+
+export interface ChatOverrides {
+  llm_override?: string;
+  embedding_override?: string;
+}
+
 export interface AuthTokens {
   access_token: string;
   refresh_token: string;

@@ -5,8 +5,13 @@
 import React, { useState } from 'react';
 import { useChatStore } from '@stores/chatStore';
 import { websocketService } from '@services/websocket';
+import { ChatOverrides } from '@types';
 
-export const ChatInput: React.FC = () => {
+interface ChatInputProps {
+  overrides?: ChatOverrides;
+}
+
+export const ChatInput: React.FC<ChatInputProps> = ({ overrides }) => {
   const [message, setMessage] = useState('');
   const { isStreaming, addMessage } = useChatStore();
 
@@ -24,8 +29,8 @@ export const ChatInput: React.FC = () => {
       created_at: new Date().toISOString(),
     });
 
-    // Send to server
-    websocketService.sendMessage(message);
+    // Send to server with overrides
+    websocketService.sendMessage(message, overrides);
 
     // Clear input
     setMessage('');

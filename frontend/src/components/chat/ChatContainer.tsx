@@ -2,14 +2,19 @@
  * Main chat container component
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useChatStore } from '@stores/chatStore';
 import { websocketService } from '@services/websocket';
+import { ChatOverrides, Agent } from '@types';
+import { apiClient } from '@services/api';
 import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
 import { ConsentModal } from './ConsentModal';
 import { ConnectionIndicator } from './ConnectionIndicator';
+import { ChatSettingsPanel } from './ChatSettingsPanel';
+
+const OVERRIDES_STORAGE_KEY = 'chat_overrides';
 
 export const ChatContainer: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -23,9 +28,53 @@ export const ChatContainer: React.FC = () => {
     setSessionId,
     isStreaming,
     currentThought,
+    agentId,
   } = useChatStore();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [agent, setAgent] = useState<Agent | null>(null);
+  const [overrides, setOverrides] = useState<ChatOverrides>({});
+
+  // Load overrides from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`${OVERRIDES_STORAGE_KEY}_${sessionId}`);
+      if (stored) {
+        setOverrides(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Failed to load overrides from localStorage:', error);
+    }
+  }, [sessionId]);
+
+  // Save overrides to localStorage when they change
+  const handleOverridesChange = (newOverrides: ChatOverrides) => {
+    setOverrides(newOverrides);
+    try {
+      localStorage.setItem(
+        `${OVERRIDES_STORAGE_KEY}_${sessionId}`,
+        JSON.stringify(newOverrides)
+      );
+    } catch (error) {
+      console.error('Failed to save overrides to localStorage:', error);
+    }
+  };
+
+  // Load agent data when agentId is available
+  useEffect(() => {
+    if (agentId) {
+      loadAgent(agentId);
+    }
+  }, [agentId]);
+
+  const loadAgent = async (id: string) => {
+    try {
+      const agentData = await apiClient.getAgent(id);
+      setAgent(agentData);
+    } catch (error) {
+      console.error('Failed to load agent:', error);
+    }
+  };
 
   // Load chat history and connect WebSocket on mount
   useEffect(() => {
@@ -80,6 +129,17 @@ export const ChatContainer: React.FC = () => {
         <ConnectionIndicator status={connectionStatus} />
       </div>
 
+      {/* Settings Panel */}
+      {agent && sessionId && (
+        <ChatSettingsPanel
+          sessionId={sessionId}
+          agentProvider={agent.llm_config.provider || 'unknown'}
+          agentEmbeddingProvider={agent.embedding_config.provider || 'unknown'}
+          overrides={overrides}
+          onOverridesChange={handleOverridesChange}
+        />
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <MessageList messages={chatHistory} />
@@ -120,7 +180,7 @@ export const ChatContainer: React.FC = () => {
 
       {/* Input */}
       <div className="border-t bg-white px-4 py-4">
-        <ChatInput />
+        <ChatInput overrides={overrides} />
       </div>
     </div>
   );
