@@ -14,7 +14,7 @@ greenlet>=3.0.0  # Required for SQLAlchemy async operations
 # Authentication & Security
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
-bcrypt>=4.0.1  # Required for chromadb compatibility (passlib 1.7.4+ supports bcrypt 4.x)
+bcrypt>=4.0.1,<5.0.0  # Required for chromadb compatibility (passlib 1.7.4 supports bcrypt 4.x only)
 python-dotenv>=1.0.0
 
 # LangChain & LLM - Compatible versions
